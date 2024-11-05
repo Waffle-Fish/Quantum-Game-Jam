@@ -21,7 +21,7 @@ public class PlayerControls : MonoBehaviour
         Ray clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit2D hit = Physics2D.GetRayIntersection(clickRay);
         if (hit.collider && hit.collider.CompareTag("Tile")) {
-            gbm.ProcessMovePlayer(hit.collider.gameObject);
+            gbm.SelectTile(hit.collider.gameObject);
         };
     }
 
