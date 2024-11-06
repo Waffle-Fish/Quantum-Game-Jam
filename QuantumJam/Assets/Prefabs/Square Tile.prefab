@@ -97,7 +97,7 @@ GameObject:
   - component: {fileID: 8934779331677935939}
   - component: {fileID: 2898725366367573793}
   m_Layer: 0
-  m_Name: Tile
+  m_Name: Square Tile
   m_TagString: Tile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
