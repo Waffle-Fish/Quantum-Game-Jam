@@ -2,15 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Unity.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameBoardManager : MonoBehaviour
 {
+    [Serializable]
+    public struct Tile
+    {
+        [Min(0f)]
+        public float Chance;
+        public GameObject TileObj;
+    }
     public static GameBoardManager Instance { get; private set;}
     public List<List<Tuple<float,GameObject>>> GameBoard {get; private set;} = new();
     public enum MoveDir { DL, DR, UR, UL, UP, DOWN, NA } // DL = Down Left, UR = Up Right
     
-    [Header("Setting Up the board")]
+    [Header("Board Config")]
     [SerializeField]
     [Tooltip("If true, the gameBoard will be initialized to it's children objects. If false, the gameboard will be auto generated")]
     private bool readChildren;
@@ -19,10 +27,17 @@ public class GameBoardManager : MonoBehaviour
     [SerializeField]
     private int numCols;
     [SerializeField]
-    private GameObject tile;
-    [SerializeField]
     [Tooltip("0.866 is the height / length of the side of a unit hexagon ")]
     private Vector2 center;
+
+    [Header("Game Tiles")]
+    [SerializeField]
+    private List<Tile> tiles;
+    [SerializeField]
+    private GameObject rssTile;
+    [SerializeField]
+    [Tooltip("Clamps from <0,0> to max width and height of board")]
+    private Vector2Int rssTileBoardPos;
 
     [Header("Select Tile")]
     [SerializeField]
@@ -35,6 +50,9 @@ public class GameBoardManager : MonoBehaviour
     private GameObject player;
     private Vector2Int playerBoardPos = new(0,0);
 
+    [Header("Debug Values")]
+    private Dictionary<string, int> tileCountMap = new();
+
     private void Awake() {
         if (Instance != null && Instance != this) Destroy(this); 
         else Instance = this; 
@@ -43,11 +61,14 @@ public class GameBoardManager : MonoBehaviour
     private void Start()
     {
         player = GameObject.FindWithTag("Player");
+        AdjustTilesPercentage();
         InitializeHexBoard();
         player.transform.position = GetWorldPosOnBoard(playerBoardPos);
+        
         tileHighlight.SetActive(false);
     }
 
+    
     public void SelectTile(GameObject chosenTile)
     {
         currentlySelectedTile = chosenTile;
@@ -58,10 +79,13 @@ public class GameBoardManager : MonoBehaviour
 
     public void MovePlayer()
     {
+        // Base Conditions
         if (!currentlySelectedTile) {
             Debug.Log("No Tile Currently Selected");
             return; 
         }
+        if (currentlySelectedTile.GetComponent<BlackHole>()) return; 
+
         MoveDir dirRelativeToPlayer = IsTileAdjacentToPlayer(currentlySelectedTile);
         if (IsTileAdjacentToPlayer(currentlySelectedTile) == MoveDir.NA) return;
         float curVal = GameBoard[playerBoardPos.y][playerBoardPos.x].Item1;
@@ -92,9 +116,15 @@ public class GameBoardManager : MonoBehaviour
             default:
             break;
         }
+
         // Debug.Log("Moving " + dirRelativeToPlayer);
         player.transform.position = GetWorldPosOnBoard(playerBoardPos);
         tileHighlight.SetActive(false);
+
+        // Win Condition
+        // if (currentlySelectedTile.GetComponent<RS>()) {
+
+        // }
     }
 
     // Returns the direction of the relative to the player if adjacent
@@ -129,18 +159,65 @@ public class GameBoardManager : MonoBehaviour
         return MoveDir.NA;
     }
 
+    // Makes all the tile chances proportionally add up to 1f
+    private void AdjustTilesPercentage()
+    {
+        float totalPercentage = 0f;
+        foreach (Tile tile in tiles) totalPercentage += tile.Chance;
+        if (Mathf.Approximately(totalPercentage, 0f))
+        {
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                Tile newTile;
+                newTile.Chance = 1f / tiles.Count;
+                newTile.TileObj = tiles[i].TileObj;
+                tiles[i] = newTile;
+            }
+        }
+        else if (!Mathf.Approximately(totalPercentage, 1f))
+        {
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                Tile newTile;
+                newTile.Chance = tiles[i].Chance / totalPercentage;
+                newTile.TileObj = tiles[i].TileObj;
+                tiles[i] = newTile;
+            }
+        }
+    }
+
     private void InitializeHexBoard()
     {
         // Set up tile objects
         const float UNIT_HEX_HALF_HEIGHT = 0.866f; // sqrt(3)/2 == height of a unit hexagon
+        List<float> chanceTable = new() { 0f };
+        for (int i = 0; i < tiles.Count-1; i++)
+        {
+            chanceTable.Add(tiles[i].Chance + chanceTable[i]);
+        }
+
         GameObject blankObj = new();
         for (int i = 0; i < numRows; i++)
         {
             GameObject r = Instantiate(blankObj,transform);
             r.name = "row " + i;
-            r.transform.localPosition = new(transform.position.x, transform.position.y + i * UNIT_HEX_HALF_HEIGHT * tile.transform.localScale.x);
+            r.transform.localPosition = new(transform.position.x, transform.position.y + i * UNIT_HEX_HALF_HEIGHT * tiles[0].TileObj.transform.localScale.x);
             for (int j = 0; j < numCols; j++)
             {
+                // Randomly Get Tile
+                float roll = UnityEngine.Random.Range(0f, 1f);
+                int tileInd = 0;
+                for (int k = chanceTable.Count-1; k >= 0; k--)
+                {
+                    if (roll >= chanceTable[k]) {
+                        tileInd = k;
+                        break;
+                    }
+                }
+                GameObject tile = tiles[tileInd].TileObj;
+                if (!tileCountMap.TryAdd(tile.name, 1)) { tileCountMap[tile.name]++;}
+
+                // Place tile down
                 GameObject newTile = Instantiate(tile,r.transform);
                 float xPosCol = newTile.transform.localPosition.x + 0.75f * j * tile.transform.localScale.x;
                 float yPosCol = (j % 2 == 0) ? 0 : +0.433f * tile.transform.localScale.x;
@@ -158,7 +235,19 @@ public class GameBoardManager : MonoBehaviour
             }
             GameBoard.Add(r);
         }
+
+        // Place Research Space Station down
+        Vector2Int newRSSPos = rssTileBoardPos;
+        if (newRSSPos == playerBoardPos) newRSSPos = new(int.MaxValue, int.MaxValue);
+        newRSSPos = new(Math.Clamp(newRSSPos.x,0,numCols-1), Math.Clamp(newRSSPos.y, 0,numRows-1));
+        rssTileBoardPos = newRSSPos;
+        GameObject rssObj = Instantiate(rssTile,GetWorldPosOnBoard(newRSSPos.x, newRSSPos.y),Quaternion.identity, transform.GetChild(newRSSPos.y));
+        rssObj.transform.SetSiblingIndex(newRSSPos.x);
+        Destroy(GameBoard[newRSSPos.y][newRSSPos.x].Item2);
+        GameBoard[newRSSPos.y][newRSSPos.x] = new(GameBoard[newRSSPos.y][newRSSPos.x].Item1, rssObj);
+
         transform.position = center;
+        RevealTileProportion();
     }
 
     // Returns the transform position of the tile on the board
@@ -183,5 +272,11 @@ public class GameBoardManager : MonoBehaviour
         return new(-1,-1);
     }
 
-
+    private void RevealTileProportion() {
+        float count = numCols * numRows;
+        foreach (var tile in tileCountMap)
+        {
+            Debug.Log(tile.Key + " count: " + tile.Value + " | proportion: " + tile.Value/count);
+        }
+    }
 }

@@ -351,7 +351,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 50
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
   m_Color: {r: 0, g: 0.9908633, b: 1, a: 1}
   m_FlipX: 0
@@ -821,8 +821,14 @@ MonoBehaviour:
   readChildren: 0
   numRows: 5
   numCols: 9
-  tile: {fileID: 7863057952568076091, guid: 669807a5e42e86549b5206e5919c82dc, type: 3}
   center: {x: -5.732, y: -2.598}
+  tiles:
+  - Chance: 9
+    TileObj: {fileID: 7094485630550012796, guid: 661593960120e4540992625e8d205046, type: 3}
+  - Chance: 1
+    TileObj: {fileID: 5519730037342020588, guid: afec46cc958c06742bbfc90dcdd89a5e, type: 3}
+  rssTile: {fileID: 7790128216468292017, guid: 514f0befdfee1f045871900871957a32, type: 3}
+  rssTileBoardPos: {x: 0, y: 0}
   tileHighlight: {fileID: 1866619905}
 --- !u!1 &1469464936
 GameObject:
