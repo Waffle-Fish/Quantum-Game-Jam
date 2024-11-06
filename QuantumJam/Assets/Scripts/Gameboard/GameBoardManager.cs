@@ -16,6 +16,13 @@ public class GameBoardManager : MonoBehaviour
     }
     public static GameBoardManager Instance { get; private set;}
     public List<List<Tuple<float,GameObject>>> GameBoard {get; private set;} = new();
+
+    [Header("Select Tile")]
+    [SerializeField]
+    [Tooltip("Will display on currently selected tile")]
+    private GameObject tileHighlight;
+    private GameObject currentlySelectedTile;
+    private Vector2Int currentTileBoardPos;
     
     [Header("Board Config")]
     [SerializeField]
@@ -41,13 +48,6 @@ public class GameBoardManager : MonoBehaviour
     [SerializeField]
     [Tooltip("Clamps from <0,0> to max width and height of board")]
     private Vector2Int startingTileBoardPos;
-
-    [Header("Select Tile")]
-    [SerializeField]
-    [Tooltip("Will display on currently selected tile")]
-    private GameObject tileHighlight;
-    private GameObject currentlySelectedTile;
-    private Vector2Int currentTileBoardPos;
 
     [Header("Player")]
     private GameObject player;
