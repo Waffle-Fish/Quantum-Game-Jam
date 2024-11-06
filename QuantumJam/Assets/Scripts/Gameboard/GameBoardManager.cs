@@ -16,7 +16,6 @@ public class GameBoardManager : MonoBehaviour
     }
     public static GameBoardManager Instance { get; private set;}
     public List<List<Tuple<float,GameObject>>> GameBoard {get; private set;} = new();
-    public enum MoveDir { DL, DR, UR, UL, UP, DOWN, NA } // DL = Down Left, UR = Up Right
     
     [Header("Board Config")]
     [SerializeField]
@@ -74,6 +73,32 @@ public class GameBoardManager : MonoBehaviour
         tileHighlight.SetActive(false);
     }
 
+     private void ReadChildrenTiles() {
+        numRows = transform.childCount;
+        numCols = transform.GetChild(0).childCount;
+        for (int i = 0; i < numRows; i++)
+        {
+            GameObject rowObj = transform.GetChild(i).gameObject;
+            rowObj.transform.localPosition = new(transform.localPosition.x, transform.localPosition.y + i * UNIT_HEX_HALF_HEIGHT * tiles[0].TileObj.transform.localScale.x);
+            List<Tuple<float, GameObject>> rowTup = new();
+            for (int j = 0; j < numCols; j++)
+            {
+                Tile currentTile = transform.GetChild(i).GetChild(j).GetComponent<Tile>();
+                float val = ((j % 2 == 0) ? 0f : 0.5f) + i;
+                if (currentTile.TileType == Tile.Type.Blank) val = -1f;
+                if (currentTile.TileType == Tile.Type.Start) {
+                    startingTile = currentTile.gameObject;
+                    startingTileBoardPos = new Vector2Int(j,i);
+                    
+                }
+                float xPosCol = 0.75f * j * currentTile.transform.localScale.x;
+                float yPosCol = (j % 2 == 0) ? 0 : +0.433f * currentTile.transform.localScale.x;
+                currentTile.transform.localPosition = new(xPosCol, yPosCol);
+                rowTup.Add(new(val, transform.GetChild(i).GetChild(j).gameObject));
+            }
+            GameBoard.Add(rowTup);
+        }
+    }
     
     public void SelectTile(GameObject chosenTile)
     {
@@ -86,6 +111,13 @@ public class GameBoardManager : MonoBehaviour
 
     public void MovePlayer()
     {
+        // Helper functions
+        bool CheckTop(int ind) { return ind < GameBoard.Count; }
+        bool CheckBot(int ind) { return ind >= 0; }
+        bool CheckLeft(int ind) { return ind >= 0; }
+        bool CheckRight(int ind) { return ind < GameBoard[0].Count; }
+        float AbsSub(float a, float b) { return Mathf.Abs(a - b); }
+
         // Base Conditions
         if (!currentlySelectedTile) {
             Debug.Log("No Tile Currently Selected");
@@ -93,79 +125,33 @@ public class GameBoardManager : MonoBehaviour
         }
         if (currentlySelectedTile.GetComponent<Tile>().TileType == Tile.Type.BlackHole) return; 
 
-        MoveDir dirRelativeToPlayer = IsTileAdjacentToPlayer(currentlySelectedTile);
-        if (IsTileAdjacentToPlayer(currentlySelectedTile) == MoveDir.NA) return;
-        float curVal = GameBoard[playerBoardPos.y][playerBoardPos.x].Item1;
-        switch (dirRelativeToPlayer)
-        {
-            case MoveDir.UP:
-                playerBoardPos.y++;
-                break;
-            case MoveDir.UL:
-                playerBoardPos.x--;
-                if (GameBoard[playerBoardPos.y][playerBoardPos.x-1].Item1 < curVal) playerBoardPos.y++;
-                break;
-            case MoveDir.UR:
-                playerBoardPos.x++;
-                if (GameBoard[playerBoardPos.y][playerBoardPos.x+1].Item1 < curVal) playerBoardPos.y++;
-                break;
-            case MoveDir.DOWN:
-                playerBoardPos.y--;
-                break;
-            case MoveDir.DL:
-                playerBoardPos.x--;
-                if (GameBoard[playerBoardPos.y][playerBoardPos.x-1].Item1 > curVal) playerBoardPos.y--;
-                break;
-            case MoveDir.DR:
-                playerBoardPos.x++;
-                if (GameBoard[playerBoardPos.y][playerBoardPos.x+1].Item1 > curVal) playerBoardPos.y--;
-                break;
-            default:
-            break;
-        }
-
-        Debug.Log("Moving " + dirRelativeToPlayer);
-        player.transform.position = GetWorldPosOnBoard(playerBoardPos);
-        tileHighlight.SetActive(false);
-
-        // Win Condition
-        // if (currentlySelectedTile.GetComponent<RS>()) {
-
-        // }
-    }
-
-    // Returns the direction of the relative to the player if adjacent
-    private MoveDir IsTileAdjacentToPlayer(GameObject chosenTile) {
-        bool CheckTop(int ind) { return ind < GameBoard.Count; }
-        bool CheckBot(int ind) { return ind >= 0; }
-        bool CheckLeft(int ind) { return ind >= 0; }
-        bool CheckRight(int ind) { return ind < GameBoard[0].Count; }
-        float AbsSub(float a, float b) { return Mathf.Abs(a - b); }
-
-        Vector3 tilePos = chosenTile.transform.position;
+        Vector3 tilePos = currentlySelectedTile.transform.position;
         Vector2Int pbPos = playerBoardPos;
+        Vector2Int destPos = new(0,0);
         float curValue = GameBoard[pbPos.y][pbPos.x].Item1;
-        if (CheckTop(pbPos.y+1) && GetWorldPosOnBoard(pbPos.x, pbPos.y+1) == tilePos) return MoveDir.UP;
-        if (CheckBot(pbPos.y-1) && GetWorldPosOnBoard(pbPos.x, pbPos.y-1) == tilePos) return MoveDir.DOWN;
+        if (CheckTop(pbPos.y+1) && GetWorldPosOnBoard(pbPos.x, pbPos.y+1) == tilePos) destPos = new(pbPos.x, pbPos.y+1);
+        if (CheckBot(pbPos.y-1) && GetWorldPosOnBoard(pbPos.x, pbPos.y-1) == tilePos) destPos = new(pbPos.x, pbPos.y-1);
         if (CheckLeft(pbPos.x-1)) {
-            if (CheckTop(pbPos.y+1) && AbsSub(GameBoard[pbPos.y+1][pbPos.x-1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x-1, pbPos.y+1) == tilePos) return MoveDir.UL;
-            if (CheckBot(pbPos.y-1) && AbsSub(GameBoard[pbPos.y-1][pbPos.x-1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x-1, pbPos.y-1) == tilePos) return MoveDir.DL;
+            if (CheckTop(pbPos.y+1) && AbsSub(GameBoard[pbPos.y+1][pbPos.x-1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x-1, pbPos.y+1) == tilePos) destPos = new(pbPos.x-1, pbPos.y+1);
+            if (CheckBot(pbPos.y-1) && AbsSub(GameBoard[pbPos.y-1][pbPos.x-1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x-1, pbPos.y-1) == tilePos) destPos = new(pbPos.x-1, pbPos.y-1);
             if (GetWorldPosOnBoard(pbPos.x-1, pbPos.y) == tilePos) {
-                if (GameBoard[pbPos.y][pbPos.x-1].Item1 < curValue) return MoveDir.DL;
-                else return MoveDir.UL;
+                destPos = new(pbPos.x-1, pbPos.y);
             }
         }
         if (CheckRight(pbPos.x+1)) {
-            if (CheckTop(pbPos.y+1) && AbsSub(GameBoard[pbPos.y+1][pbPos.x+1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x+1, pbPos.y+1) == tilePos) return MoveDir.UR;
-            if (CheckBot(pbPos.y-1) && AbsSub(GameBoard[pbPos.y-1][pbPos.x+1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x+1, pbPos.y-1) == tilePos) return MoveDir.DR;
+            if (CheckTop(pbPos.y+1) && AbsSub(GameBoard[pbPos.y+1][pbPos.x+1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x+1, pbPos.y+1) == tilePos) destPos = new(pbPos.x+1, pbPos.y+1);
+            if (CheckBot(pbPos.y-1) && AbsSub(GameBoard[pbPos.y-1][pbPos.x+1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x+1, pbPos.y-1) == tilePos) destPos = new(pbPos.x+1, pbPos.y-1);
             if (GetWorldPosOnBoard(pbPos.x+1, pbPos.y) == tilePos) {
-                if (GameBoard[pbPos.y][pbPos.x+1].Item1 < curValue) return MoveDir.DR;
-                else return MoveDir.UR;
+                destPos = new(pbPos.x+1, pbPos.y);
             }
         }
-        return MoveDir.NA;
+
+        playerBoardPos = destPos;
+        player.transform.position = GetWorldPosOnBoard(playerBoardPos);
+        tileHighlight.SetActive(false);
     }
 
+    #region Auto-Generate Map
     // Makes all the tile chances proportionally add up to 1f
     private void AdjustTilesPercentage()
     {
@@ -264,33 +250,16 @@ public class GameBoardManager : MonoBehaviour
         RevealTileProportion();
     }
 
-    private void ReadChildrenTiles() {
-        numRows = transform.childCount;
-        numCols = transform.GetChild(0).childCount;
-        for (int i = 0; i < numRows; i++)
+    private void RevealTileProportion() {
+        float count = numCols * numRows;
+        foreach (var tile in tileCountMap)
         {
-            GameObject rowObj = transform.GetChild(i).gameObject;
-            rowObj.transform.localPosition = new(transform.localPosition.x, transform.localPosition.y + i * UNIT_HEX_HALF_HEIGHT * tiles[0].TileObj.transform.localScale.x);
-            List<Tuple<float, GameObject>> rowTup = new();
-            for (int j = 0; j < numCols; j++)
-            {
-                Tile currentTile = transform.GetChild(i).GetChild(j).GetComponent<Tile>();
-                float val = ((j % 2 == 0) ? 0f : 0.5f) + i;
-                if (currentTile.TileType == Tile.Type.Blank) val = -1f;
-                if (currentTile.TileType == Tile.Type.Start) {
-                    startingTile = currentTile.gameObject;
-                    startingTileBoardPos = new Vector2Int(j,i);
-                    
-                }
-                float xPosCol = 0.75f * j * currentTile.transform.localScale.x;
-                float yPosCol = (j % 2 == 0) ? 0 : +0.433f * currentTile.transform.localScale.x;
-                currentTile.transform.localPosition = new(xPosCol, yPosCol);
-                rowTup.Add(new(val, transform.GetChild(i).GetChild(j).gameObject));
-            }
-            GameBoard.Add(rowTup);
+            Debug.Log(tile.Key + " count: " + tile.Value + " | proportion: " + tile.Value/count);
         }
     }
+    #endregion
 
+    #region Helper Functions
     // Returns the transform position of the tile on the board
     private Vector3 GetWorldPosOnBoard(int x, int y) {
         return GameBoard[y][x].Item2.transform.position;
@@ -312,12 +281,5 @@ public class GameBoardManager : MonoBehaviour
         Debug.LogError("Tile Not Found");
         return new(-1,-1);
     }
-
-    private void RevealTileProportion() {
-        float count = numCols * numRows;
-        foreach (var tile in tileCountMap)
-        {
-            Debug.Log(tile.Key + " count: " + tile.Value + " | proportion: " + tile.Value/count);
-        }
-    }
+    #endregion
 }

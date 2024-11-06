@@ -9,7 +9,15 @@ public class Tile : MonoBehaviour
     public Type TileType;
     public string TileDescription;
 
+    public bool EnableSpriteRenderOnAwake = true;
+
+    SpriteRenderer spriteRenderer;
+
+    private void Awake() {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
     private void Start() {
-        // if (TileType == Type.Blank) GetComponent<SpriteRenderer>().enabled = false;
+        spriteRenderer.enabled = EnableSpriteRenderOnAwake;
     }
 }
