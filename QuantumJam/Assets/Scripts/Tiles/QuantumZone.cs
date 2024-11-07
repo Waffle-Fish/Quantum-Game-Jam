@@ -55,17 +55,17 @@ public class QuantumZone : MonoBehaviour
     }
 
     public bool IsSafe() {
-        // if (ProbabilityTracker.Probabilities.Length == 4) return Mathf.Approximately(ProbabilityTracker.Probabilities[2].Probability, 1f);
-        // else return Mathf.Approximately(ProbabilityTracker.Probabilities[0].Probability, 1f);
-        var probs = ProbabilityTracker.Probabilities;
-        foreach (var basisProbability in probs)
-        {
-            foreach (var item in basisProbability.QuditValues)
-            {
-                Debug.Log(item);
-            }
-        }
-        return true;
+        if (ProbabilityTracker.Probabilities.Length == 4) return Mathf.Approximately(ProbabilityTracker.Probabilities[2].Probability, 1f);
+        else return Mathf.Approximately(ProbabilityTracker.Probabilities[0].Probability, 1f);
+        // var probs = ProbabilityTracker.Probabilities;
+        // foreach (var basisProbability in probs)
+        // {
+        //     foreach (var item in basisProbability.QuditValues)
+        //     {
+        //         Debug.Log(item);
+        //     }
+        // }
+        // return true;
     }
 
     #region Qunatum Helper Functions

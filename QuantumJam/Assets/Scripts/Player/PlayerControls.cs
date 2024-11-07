@@ -7,8 +7,11 @@ public class PlayerControls : MonoBehaviour
     private Vector3 mouseWorldPosition;
     private GameBoardManager gbm;
 
+
+
     private void Start() {
         gbm = GameBoardManager.Instance;
+        
     }
 
     private void Update() {

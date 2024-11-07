@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using QRG.QuantumForge.Runtime;
 using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -50,6 +51,12 @@ public class GameBoardManager : MonoBehaviour
     private Vector2Int startingTileBoardPos;
 
     [Header("Player")]
+    [SerializeField]
+    private int maxFuel;
+    public int CurrentFuel {get; private set;} = 0;
+    [SerializeField]
+    private int maxProbes;
+    public int CurrentProbesCount {get; private set;} = 0;
     private GameObject player;
     private Vector2Int playerBoardPos = new(0,0);
 
@@ -63,13 +70,21 @@ public class GameBoardManager : MonoBehaviour
 
     private void Start()
     {
-        player = GameObject.FindWithTag("Player");
-        AdjustTilesPercentage();
-        if (readChildren) ReadChildrenTiles();
-        else InitializeHexBoard();
+        // SetUp Board
+        if (readChildren) {
+            ReadChildrenTiles();
+        }
+        else {
+            AdjustTilesPercentage();
+            InitializeHexBoard();
+        }
 
+        // Initialize Player
+        player = GameObject.FindWithTag("Player");
         playerBoardPos = startingTileBoardPos;
         player.transform.position = GetWorldPosOnBoard(playerBoardPos);
+        CurrentFuel = maxFuel;
+        CurrentProbesCount = maxProbes;
         tileHighlight.SetActive(false);
     }
 
@@ -124,13 +139,22 @@ public class GameBoardManager : MonoBehaviour
             return; 
         }
         if (currentlySelectedTile.GetComponent<Tile>().TileType == Tile.Type.BlackHole) return; 
+        if (CurrentFuel <= 0) {
+            Debug.Log("Out of Fuel!");
+            return;
+        }
 
+        // Prep for Move
         Vector3 tilePos = currentlySelectedTile.transform.position;
         Vector2Int pbPos = playerBoardPos;
         Vector2Int destPos = new(-1,-1);
         float curValue = GameBoard[pbPos.y][pbPos.x].Item1;
+
+        // Try Move Up
         if (CheckTop(pbPos.y+1) && GetWorldPosOnBoard(pbPos.x, pbPos.y+1) == tilePos) destPos = new(pbPos.x, pbPos.y+1);
+        // Try Move Down
         if (CheckBot(pbPos.y-1) && GetWorldPosOnBoard(pbPos.x, pbPos.y-1) == tilePos) destPos = new(pbPos.x, pbPos.y-1);
+        // Try Move Up Left or Down Left
         if (CheckLeft(pbPos.x-1)) {
             if (CheckTop(pbPos.y+1) && AbsSub(GameBoard[pbPos.y+1][pbPos.x-1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x-1, pbPos.y+1) == tilePos) destPos = new(pbPos.x-1, pbPos.y+1);
             if (CheckBot(pbPos.y-1) && AbsSub(GameBoard[pbPos.y-1][pbPos.x-1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x-1, pbPos.y-1) == tilePos) destPos = new(pbPos.x-1, pbPos.y-1);
@@ -138,6 +162,7 @@ public class GameBoardManager : MonoBehaviour
                 destPos = new(pbPos.x-1, pbPos.y);
             }
         }
+        // Try Move Up Right or Down Right
         if (CheckRight(pbPos.x+1)) {
             if (CheckTop(pbPos.y+1) && AbsSub(GameBoard[pbPos.y+1][pbPos.x+1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x+1, pbPos.y+1) == tilePos) destPos = new(pbPos.x+1, pbPos.y+1);
             if (CheckBot(pbPos.y-1) && AbsSub(GameBoard[pbPos.y-1][pbPos.x+1].Item1,curValue) <= 1f && GetWorldPosOnBoard(pbPos.x+1, pbPos.y-1) == tilePos) destPos = new(pbPos.x+1, pbPos.y-1);
@@ -146,11 +171,51 @@ public class GameBoardManager : MonoBehaviour
             }
         }
 
+        // Update player
         tileHighlight.SetActive(false);
         if (destPos == new Vector2Int(-1,-1)) return;
         playerBoardPos = destPos;
         player.transform.position = GetWorldPosOnBoard(playerBoardPos);
-        ActivateTileEffect();
+        CurrentFuel--;
+
+        // Activate Tile Effect
+        Tile currentTile = currentlySelectedTile.GetComponent<Tile>();
+        switch (currentTile.TileType)
+        {
+            case Tile.Type.RSS:
+                Debug.Log("You won!");
+                break;
+            case Tile.Type.QuantumZone:
+                QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
+                curTileQZ.Measure();
+                if (!curTileQZ.IsSafe()) player.GetComponent<PlayerHealth>().DamagePlayer();
+                break;
+            default:
+            break;
+        }
+    }
+
+    public void ActivateProbe() {
+        if (!currentlySelectedTile) {
+            Debug.Log("No Tile Currently Selected");
+            return; 
+        }
+        if (CurrentProbesCount <= 0) {
+            Debug.Log("Out of Probes!");
+            return;
+        }
+
+        // Activate TileEffect
+        Tile currentTile = currentlySelectedTile.GetComponent<Tile>();
+        if (currentTile.TileType == Tile.Type.QuantumZone) {
+                QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
+                curTileQZ.Measure();
+        }
+        CurrentProbesCount--;
+    }
+
+    public void PhaseRotateTile() {
+        
     }
 
     #region Auto-Generate Map
@@ -282,23 +347,6 @@ public class GameBoardManager : MonoBehaviour
         }
         Debug.LogError("Tile Not Found");
         return new(-1,-1);
-    }
-
-    private void ActivateTileEffect() {
-        Tile currentTile = currentlySelectedTile.GetComponent<Tile>();
-        switch (currentTile.TileType)
-        {
-            case Tile.Type.RSS:
-                Debug.Log("You won!");
-                break;
-            case Tile.Type.QuantumZone:
-                QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
-                curTileQZ.Measure();
-                if (!curTileQZ.IsSafe()) player.GetComponent<PlayerHealth>().DamagePlayer();
-                break;
-            default:
-            break;
-        }
     }
     #endregion
 }
