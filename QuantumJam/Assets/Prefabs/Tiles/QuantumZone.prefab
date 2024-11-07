@@ -265,6 +265,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 282bbf2b487cd204fb1cd8107bc40fc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  zonePair: {fileID: 0}
+  IsMeasured: 0
 --- !u!114 &8119835042563168186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -278,7 +280,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _basisValues: {fileID: 11400000, guid: 301b6afcb184ca04cbf3b794bb12f850, type: 2}
-  Initial: Safe
+  Initial: Danger
 --- !u!114 &3038741222078087400
 MonoBehaviour:
   m_ObjectHideFlags: 0

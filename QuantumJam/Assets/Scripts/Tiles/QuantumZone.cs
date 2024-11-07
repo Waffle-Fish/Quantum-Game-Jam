@@ -24,36 +24,73 @@ public class QuantumZone : MonoBehaviour
 
     private void Start() {
         if (!zonePair) Debug.LogError("Missing Zone Pair");
-        QuantumProperty.Hadamard(TileQP);
     }
 
     private void Update() {
-        QuantumProperty.NCycle(TileQP,zonePair.TileQP);
+        // QuantumProperty.NCycle(TileQP,zonePair.TileQP);
+        UpdateColors();
     }
     
     public void Measure() {
         if (IsMeasured) return;
-        // QuantumProperty.NCycle(TileQP,zonePair.TileQP);
-        QuantumProperty.Measure(zonePair.TileQP);
-        QuantumProperty.Measure(TileQP);
-        // if (ProbabilityTracker.GetBasisProbabilities() == zonePair.ProbabilityTracker.GetBasisProbabilities()) QuantumProperty.Cycle(TileQP);
+        QuantumProperty.Hadamard(zonePair.TileQP);
+        NCycle21();
+        MeasureSelf();
+        if (UnityEngine.Random.Range(0, 1) == 0) MeasureSelf();
+        else MeasurePair();
         UpdateColor();
         zonePair.UpdateColor();
         IsMeasured = true;
         zonePair.IsMeasured = true;
     }
 
-    public void Cycle() {
-        TileQP.Cycle();
-        
+    private void UpdateColors() {
+        if (!IsMeasured) return;
+        UpdateColor();
+        zonePair.UpdateColor();
     }
 
     public void UpdateColor() {
-        if (IsSafe()) spriteRender.color = Color.blue;
-        else spriteRender.color = Color.red;
+        if (IsSafe()) {
+            spriteRender.color = Color.blue;
+        }
+        else {
+            spriteRender.color = Color.red;
+        }
     }
 
     public bool IsSafe() {
-        return Mathf.Approximately(ProbabilityTracker.GetBasisProbabilities()[0].Probability,1f);
+        return Mathf.Approximately(ProbabilityTracker.Probabilities[2].Probability, 1f);
+    }
+
+    public void Cycle() {
+        TileQP.Cycle();
+    }
+
+    public void CyclePartner() {
+        zonePair.Cycle();
+    }
+
+    public void NCycle12() {
+        QuantumProperty.NCycle(TileQP,zonePair.TileQP);
+    }
+    public void NCycle21() {
+        QuantumProperty.NCycle(zonePair.TileQP,TileQP);
+    }
+
+    public void MeasureSelf() {
+        int[] arr = QuantumProperty.Measure(TileQP);
+    }
+
+    public void MeasurePair() {
+        QuantumProperty.Measure(zonePair.TileQP);
+    }
+
+    public void HadamardSelf() {
+        QuantumProperty.Hadamard(TileQP);
+    }
+
+    public void HadamardPair() {
+        QuantumProperty.Hadamard(zonePair.TileQP);
     }
 }
