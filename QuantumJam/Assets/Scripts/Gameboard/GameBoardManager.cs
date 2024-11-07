@@ -292,7 +292,9 @@ public class GameBoardManager : MonoBehaviour
                 Debug.Log("You won!");
                 break;
             case Tile.Type.QuantumZone:
-                currentTile.GetComponent<QuantumZone>().Measure();
+                QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
+                curTileQZ.Measure();
+                if (!curTileQZ.IsSafe()) player.GetComponent<PlayerHealth>().DamagePlayer();
                 break;
             default:
             break;

@@ -8,13 +8,11 @@ public class QuantumZone : MonoBehaviour
 {
     public QuantumProperty TileQP {get; private set;}
     public ProbabilityTracker ProbabilityTracker {get; private set;}
+    public bool IsMeasured = false;
 
     [SerializeField]
     private QuantumZone zonePair;
-
     SpriteRenderer spriteRender;
-
-    public bool IsMeasured = false;
 
     private void Awake() {
         TileQP = GetComponent<QuantumProperty>();
@@ -27,7 +25,6 @@ public class QuantumZone : MonoBehaviour
     }
 
     private void Update() {
-        // QuantumProperty.NCycle(TileQP,zonePair.TileQP);
         UpdateColors();
     }
     
@@ -38,8 +35,6 @@ public class QuantumZone : MonoBehaviour
         MeasureSelf();
         if (UnityEngine.Random.Range(0, 1) == 0) MeasureSelf();
         else MeasurePair();
-        UpdateColor();
-        zonePair.UpdateColor();
         IsMeasured = true;
         zonePair.IsMeasured = true;
     }
@@ -60,9 +55,20 @@ public class QuantumZone : MonoBehaviour
     }
 
     public bool IsSafe() {
-        return Mathf.Approximately(ProbabilityTracker.Probabilities[2].Probability, 1f);
+        // if (ProbabilityTracker.Probabilities.Length == 4) return Mathf.Approximately(ProbabilityTracker.Probabilities[2].Probability, 1f);
+        // else return Mathf.Approximately(ProbabilityTracker.Probabilities[0].Probability, 1f);
+        var probs = ProbabilityTracker.Probabilities;
+        foreach (var basisProbability in probs)
+        {
+            foreach (var item in basisProbability.QuditValues)
+            {
+                Debug.Log(item);
+            }
+        }
+        return true;
     }
 
+    #region Qunatum Helper Functions
     public void Cycle() {
         TileQP.Cycle();
     }
@@ -93,4 +99,5 @@ public class QuantumZone : MonoBehaviour
     public void HadamardPair() {
         QuantumProperty.Hadamard(zonePair.TileQP);
     }
+    #endregion
 }
