@@ -98,6 +98,8 @@ GameObject:
   - component: {fileID: 3195185747668807019}
   - component: {fileID: 2341509632000274328}
   - component: {fileID: 1219601713504199744}
+  - component: {fileID: 8119835042563168186}
+  - component: {fileID: 3038741222078087400}
   m_Layer: 0
   m_Name: QuantumZone
   m_TagString: Tile
@@ -250,6 +252,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TileType: 4
   TileDescription: 
+  EnableSpriteRenderOnAwake: 1
 --- !u!114 &1219601713504199744
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -262,3 +265,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 282bbf2b487cd204fb1cd8107bc40fc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8119835042563168186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3644021496568550375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e681316c3a4754642b7e95ec147aa85d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _basisValues: {fileID: 11400000, guid: 301b6afcb184ca04cbf3b794bb12f850, type: 2}
+  Initial: Safe
+--- !u!114 &3038741222078087400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3644021496568550375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f05ce4639a01ce4fa41f0f6fe4f0ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  quantumProperties:
+  - {fileID: 8119835042563168186}
+  probabilities: []
+  continuous: 1

@@ -127,7 +127,7 @@ public class GameBoardManager : MonoBehaviour
 
         Vector3 tilePos = currentlySelectedTile.transform.position;
         Vector2Int pbPos = playerBoardPos;
-        Vector2Int destPos = new(0,0);
+        Vector2Int destPos = new(-1,-1);
         float curValue = GameBoard[pbPos.y][pbPos.x].Item1;
         if (CheckTop(pbPos.y+1) && GetWorldPosOnBoard(pbPos.x, pbPos.y+1) == tilePos) destPos = new(pbPos.x, pbPos.y+1);
         if (CheckBot(pbPos.y-1) && GetWorldPosOnBoard(pbPos.x, pbPos.y-1) == tilePos) destPos = new(pbPos.x, pbPos.y-1);
@@ -146,9 +146,11 @@ public class GameBoardManager : MonoBehaviour
             }
         }
 
+        tileHighlight.SetActive(false);
+        if (destPos == new Vector2Int(-1,-1)) return;
         playerBoardPos = destPos;
         player.transform.position = GetWorldPosOnBoard(playerBoardPos);
-        tileHighlight.SetActive(false);
+        ActivateTileEffect();
     }
 
     #region Auto-Generate Map
@@ -280,6 +282,21 @@ public class GameBoardManager : MonoBehaviour
         }
         Debug.LogError("Tile Not Found");
         return new(-1,-1);
+    }
+
+    private void ActivateTileEffect() {
+        Tile currentTile = currentlySelectedTile.GetComponent<Tile>();
+        switch (currentTile.TileType)
+        {
+            case Tile.Type.RSS:
+                Debug.Log("You won!");
+                break;
+            case Tile.Type.QuantumZone:
+                currentTile.GetComponent<QuantumZone>().Measure();
+                break;
+            default:
+            break;
+        }
     }
     #endregion
 }
