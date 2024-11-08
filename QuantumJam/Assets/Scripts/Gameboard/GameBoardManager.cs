@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using QRG.QuantumForge.Runtime;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -223,10 +225,19 @@ public class GameBoardManager : MonoBehaviour
         }
         CurrentProbesCount--;
         currentlySelectedTile = null;
+        tileHighlight.SetActive(false);
     }
 
-    public void PhaseRotateTile() {
+    public void PhaseRotateTile(float percentShift) {
+        Tile currentTile = currentlySelectedTile.GetComponent<Tile>();
+        QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
+        if (currentTile.TileType != Tile.Type.QuantumZone) return;
+        if (curTileQZ.IsMeasured) { return; }
+
+        percentShift = math.clamp(percentShift, 0, 1f);
+        curTileQZ.PhaseAll(math.PI * percentShift);
         currentlySelectedTile = null;
+        tileHighlight.SetActive(false);
     }
 
     #region Auto-Generate Map

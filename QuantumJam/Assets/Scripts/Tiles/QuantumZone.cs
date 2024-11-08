@@ -14,6 +14,7 @@ public class QuantumZone : MonoBehaviour
     [SerializeField]
     private QuantumZone zonePair;
     SpriteRenderer spriteRender;
+    QuantumProperty zonePairQP;
 
     private void Awake() {
         TileQP = GetComponent<QuantumProperty>();
@@ -23,6 +24,7 @@ public class QuantumZone : MonoBehaviour
 
     private void Start() {
         if (!zonePair) Debug.LogError("Missing Zone Pair");
+        zonePairQP = zonePair.GetComponent<QuantumProperty>();
     }
 
     private void Update() {
@@ -91,6 +93,25 @@ public class QuantumZone : MonoBehaviour
 
     public void HadamardPair() {
         QuantumProperty.Hadamard(zonePair.TileQP);
+    }
+
+    public void PhaseRotateSelf(float val) {
+        Debug.Log($"Applying phase rotation to {TileQP.gameObject.name}");
+        TileQP.PhaseRotate(val, TileQP.BasisValues.values[0]);
+    }
+
+    public void PhaseRotatePair(float val) {
+        zonePairQP.PhaseRotate(val, zonePairQP.BasisValues.values.ToArray());
+    }
+
+    public void PhaseAll(float rotVal) {
+        HadamardSelf();
+        HadamardPair();
+        PhaseRotateSelf(rotVal);
+        // PhaseRotatePair(rotVal);
+        HadamardSelf();
+        HadamardPair();
+        NCycle12();
     }
     #endregion
 }
