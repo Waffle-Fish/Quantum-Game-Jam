@@ -16,6 +16,9 @@ public class QuantumZone : MonoBehaviour
     SpriteRenderer spriteRender;
     QuantumProperty zonePairQP;
 
+    public float DangerProbability {get; private set;}
+    public float SafeProbability {get; private set;}
+
     private void Awake() {
         TileQP = GetComponent<QuantumProperty>();
         ProbabilityTracker = GetComponent<ProbabilityTracker>();
@@ -25,10 +28,16 @@ public class QuantumZone : MonoBehaviour
     private void Start() {
         if (!zonePair) Debug.LogError("Missing Zone Pair");
         zonePairQP = zonePair.GetComponent<QuantumProperty>();
+        // if (ProbabilityTracker.Probabilities.Length != 2 || ProbabilityTracker.Probabilities.Length != 4) {
+        //     Debug.LogError("Probability tracker doesnt have 1 or 2 Quantum Properties");
+        // }
+        // StartCoroutine(UpdateDangerProbability());
+        // StartCoroutine(UpdateSafeProbability());
     }
 
     private void Update() {
         UpdateColors();
+        UpdateProbabilities();
     }
     
     public void Measure() {
@@ -63,6 +72,53 @@ public class QuantumZone : MonoBehaviour
         else return Mathf.Approximately(ProbabilityTracker.Probabilities[0].Probability, 1f);
     }
 
+    public void PhaseAll(float rotVal) {
+        HadamardSelf();
+        HadamardPair();
+        PhaseRotateSelf(rotVal);
+        HadamardSelf();
+        HadamardPair();
+        NCycle12();
+    }
+
+    private void UpdateProbabilities() {
+        DangerProbability = ProbabilityTracker.Probabilities[1].Probability;
+        if (ProbabilityTracker.Probabilities.Length == 4) {
+            Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[2].Probability);
+            SafeProbability = ProbabilityTracker.Probabilities[2].Probability;
+        } else {
+            Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[0].Probability);
+            SafeProbability = ProbabilityTracker.Probabilities[0].Probability;
+        }
+    }
+
+    IEnumerator UpdateSafeProbability() {
+        yield return null;
+        if (ProbabilityTracker.Probabilities.Length == 4) {
+            Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[2].Probability);
+            SafeProbability = ProbabilityTracker.Probabilities[2].Probability;
+        } else {
+            Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[0].Probability);
+            SafeProbability = ProbabilityTracker.Probabilities[0].Probability;
+        }
+    }
+    // IEnumerator UpdateDangerProbability() {
+        
+    //     yield return null;
+    //     DangerProbability = ProbabilityTracker.Probabilities[1].Probability;
+    // }
+
+    // IEnumerator UpdateSafeProbability() {
+    //     yield return null;
+    //     if (ProbabilityTracker.Probabilities.Length == 4) {
+    //         Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[2].Probability);
+    //         SafeProbability = ProbabilityTracker.Probabilities[2].Probability;
+    //     } else {
+    //         Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[0].Probability);
+    //         SafeProbability = ProbabilityTracker.Probabilities[0].Probability;
+    //     }
+    // }
+
     #region Qunatum Helper Functions
     public void Cycle() {
         TileQP.Cycle();
@@ -96,22 +152,11 @@ public class QuantumZone : MonoBehaviour
     }
 
     public void PhaseRotateSelf(float val) {
-        Debug.Log($"Applying phase rotation to {TileQP.gameObject.name}");
         TileQP.PhaseRotate(val, TileQP.BasisValues.values[0]);
     }
 
     public void PhaseRotatePair(float val) {
         zonePairQP.PhaseRotate(val, zonePairQP.BasisValues.values.ToArray());
-    }
-
-    public void PhaseAll(float rotVal) {
-        HadamardSelf();
-        HadamardPair();
-        PhaseRotateSelf(rotVal);
-        // PhaseRotatePair(rotVal);
-        HadamardSelf();
-        HadamardPair();
-        NCycle12();
     }
     #endregion
 }
