@@ -174,7 +174,10 @@ public class GameBoardManager : MonoBehaviour
 
         // Update player
         tileHighlight.SetActive(false);
-        if (destPos == new Vector2Int(-1,-1)) return;
+        if (destPos == new Vector2Int(-1,-1)) {
+            currentlySelectedTile = null;
+            return;
+        }
         playerBoardPos = destPos;
         player.transform.position = GetWorldPosOnBoard(playerBoardPos);
         CurrentFuel--;
