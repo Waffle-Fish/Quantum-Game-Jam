@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using QRG.QuantumForge.Runtime;
+using Unity.VisualScripting;
 using UnityEngine;
 
 [RequireComponent(typeof(QuantumProperty))]
@@ -41,11 +42,12 @@ public class QuantumZone : MonoBehaviour
 
     private void UpdateColors() {
         if (!IsMeasured) return;
-        UpdateColor();
-        zonePair.UpdateColor();
+        StartCoroutine(UpdateColor());
+        StartCoroutine(zonePair.UpdateColor());
     }
 
-    public void UpdateColor() {
+    IEnumerator UpdateColor() {
+        yield return null;
         if (IsSafe()) {
             spriteRender.color = Color.blue;
         }
@@ -57,15 +59,6 @@ public class QuantumZone : MonoBehaviour
     public bool IsSafe() {
         if (ProbabilityTracker.Probabilities.Length == 4) return Mathf.Approximately(ProbabilityTracker.Probabilities[2].Probability, 1f);
         else return Mathf.Approximately(ProbabilityTracker.Probabilities[0].Probability, 1f);
-        // var probs = ProbabilityTracker.Probabilities;
-        // foreach (var basisProbability in probs)
-        // {
-        //     foreach (var item in basisProbability.QuditValues)
-        //     {
-        //         Debug.Log(item);
-        //     }
-        // }
-        // return true;
     }
 
     #region Qunatum Helper Functions

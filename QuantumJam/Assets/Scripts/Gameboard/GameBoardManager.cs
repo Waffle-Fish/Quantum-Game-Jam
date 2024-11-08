@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using QRG.QuantumForge.Runtime;
@@ -88,7 +89,7 @@ public class GameBoardManager : MonoBehaviour
         tileHighlight.SetActive(false);
     }
 
-     private void ReadChildrenTiles() {
+    private void ReadChildrenTiles() {
         numRows = transform.childCount;
         numCols = transform.GetChild(0).childCount;
         for (int i = 0; i < numRows; i++)
@@ -119,7 +120,7 @@ public class GameBoardManager : MonoBehaviour
     {
         currentlySelectedTile = chosenTile;
         currentTileBoardPos = FindTileBoardPos(chosenTile);
-        Debug.Log(currentlySelectedTile + " val: " + GameBoard[currentTileBoardPos.y][currentTileBoardPos.x].Item1);
+        // Debug.Log(currentlySelectedTile + " val: " + GameBoard[currentTileBoardPos.y][currentTileBoardPos.x].Item1);
         tileHighlight.SetActive(true);
         tileHighlight.transform.position = currentlySelectedTile.transform.position;
     }
@@ -188,11 +189,17 @@ public class GameBoardManager : MonoBehaviour
             case Tile.Type.QuantumZone:
                 QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
                 curTileQZ.Measure();
-                if (!curTileQZ.IsSafe()) player.GetComponent<PlayerHealth>().DamagePlayer();
+                StartCoroutine(CheckSafety(curTileQZ));
                 break;
             default:
             break;
         }
+        currentlySelectedTile = null;
+    }
+
+    IEnumerator CheckSafety(QuantumZone qz) {
+        yield return null;
+        if (!qz.IsSafe()) player.GetComponent<PlayerHealth>().DamagePlayer();
     }
 
     public void ActivateProbe() {
@@ -212,10 +219,11 @@ public class GameBoardManager : MonoBehaviour
                 curTileQZ.Measure();
         }
         CurrentProbesCount--;
+        currentlySelectedTile = null;
     }
 
     public void PhaseRotateTile() {
-        
+        currentlySelectedTile = null;
     }
 
     #region Auto-Generate Map

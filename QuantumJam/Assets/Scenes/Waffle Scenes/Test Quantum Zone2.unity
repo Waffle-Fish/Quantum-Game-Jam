@@ -4860,7 +4860,7 @@ MonoBehaviour:
   rssTileBoardPos: {x: 0, y: 0}
   startingTile: {fileID: 0}
   startingTileBoardPos: {x: 0, y: 0}
-  maxFuel: 1
+  maxFuel: 10
   maxProbes: 1
 --- !u!210 &1984381643
 SortingGroup:

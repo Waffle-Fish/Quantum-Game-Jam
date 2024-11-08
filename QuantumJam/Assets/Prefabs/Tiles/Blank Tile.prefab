@@ -164,4 +164,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TileType: 0
   TileDescription: 
-  EnableSpriteRenderOnAwake: 1
+  EnableSpriteRenderOnAwake: 0
