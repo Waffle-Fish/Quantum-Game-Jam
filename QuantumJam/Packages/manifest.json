@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.qrg.quantumforge": "https://github.com/quantum-realm-games/quantum-forge-unity-package.git",
+    "com.qrg.quantumforge": "file:C:/Users/Administrator/Downloads/quantum-forge-unity-package-main",
     "com.unity.cinemachine": "2.10.2",
     "com.unity.collab-proxy": "2.5.2",
     "com.unity.feature.2d": "2.0.1",

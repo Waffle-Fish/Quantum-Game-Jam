@@ -1,11 +1,10 @@
 {
   "dependencies": {
     "com.qrg.quantumforge": {
-      "version": "https://github.com/quantum-realm-games/quantum-forge-unity-package.git",
+      "version": "file:C:/Users/Administrator/Downloads/quantum-forge-unity-package-main",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "97506c304a2f05115c8408e264703a1b8db6d4e4"
+      "source": "local",
+      "dependencies": {}
     },
     "com.unity.2d.animation": {
       "version": "9.1.2",
