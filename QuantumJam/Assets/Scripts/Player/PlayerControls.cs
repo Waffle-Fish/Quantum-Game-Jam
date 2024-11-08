@@ -21,6 +21,18 @@ public class PlayerControls : MonoBehaviour
         mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         HoverTile();
         DetectLeftClick();
+        DetectRightClick();
+    }
+
+    private void DetectRightClick() {
+        if (!Mouse.current.rightButton.wasPressedThisFrame) return;
+        Ray clickRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit2D hit = Physics2D.GetRayIntersection(clickRay);
+        if (hit.collider && hit.collider.CompareTag("Tile")) {
+            hoverOverlay.SetActive(false);
+            gbm.SelectTile(hit.collider.gameObject);
+            gbm.MovePlayer();
+        };
     }
 
     private void DetectLeftClick() {

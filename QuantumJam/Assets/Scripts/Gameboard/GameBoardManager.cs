@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using QRG.QuantumForge.FaQtory;
 using QRG.QuantumForge.Runtime;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -199,6 +200,26 @@ public class GameBoardManager : MonoBehaviour
             default:
             break;
         }
+
+        // Pickup Tile
+        Pickup pickup = currentTile.pickup;
+        if (pickup) {
+            switch (pickup.ItemType) {
+                case Pickup.Item.RepairKit:
+                    player.GetComponent<PlayerHealth>().HealPlayer(pickup.val);
+                    break;
+                case Pickup.Item.Fuel:
+                    CurrentFuel += pickup.val;
+                    Math.Clamp(CurrentFuel, 0 , maxFuel);
+                    break;
+                case Pickup.Item.Probe:
+                    CurrentProbesCount += pickup.val;
+                    Math.Clamp(CurrentProbesCount, 0 , maxProbes);
+                    break;
+            }
+            pickup.gameObject.SetActive(false);
+        }
+
         currentlySelectedTile = null;
     }
 

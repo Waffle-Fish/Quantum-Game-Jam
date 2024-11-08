@@ -84,10 +84,8 @@ public class QuantumZone : MonoBehaviour
     private void UpdateProbabilities() {
         DangerProbability = ProbabilityTracker.Probabilities[1].Probability;
         if (ProbabilityTracker.Probabilities.Length == 4) {
-            Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[2].Probability);
             SafeProbability = ProbabilityTracker.Probabilities[2].Probability;
         } else {
-            Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[0].Probability);
             SafeProbability = ProbabilityTracker.Probabilities[0].Probability;
         }
     }
@@ -102,23 +100,7 @@ public class QuantumZone : MonoBehaviour
             SafeProbability = ProbabilityTracker.Probabilities[0].Probability;
         }
     }
-    // IEnumerator UpdateDangerProbability() {
-        
-    //     yield return null;
-    //     DangerProbability = ProbabilityTracker.Probabilities[1].Probability;
-    // }
-
-    // IEnumerator UpdateSafeProbability() {
-    //     yield return null;
-    //     if (ProbabilityTracker.Probabilities.Length == 4) {
-    //         Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[2].Probability);
-    //         SafeProbability = ProbabilityTracker.Probabilities[2].Probability;
-    //     } else {
-    //         Debug.Log("Chance of Safe" + ProbabilityTracker.Probabilities[0].Probability);
-    //         SafeProbability = ProbabilityTracker.Probabilities[0].Probability;
-    //     }
-    // }
-
+ 
     #region Qunatum Helper Functions
     public void Cycle() {
         TileQP.Cycle();
