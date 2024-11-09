@@ -63,6 +63,7 @@ public class GameBoardManager : MonoBehaviour
     public int CurrentProbesCount {get; private set;} = 0;
     private GameObject player;
     private Vector2Int playerBoardPos = new(0,0);
+    private float phaseRotatePercent = 0f;
 
     [Header("Debug Values")]
     private Dictionary<string, int> tileCountMap = new();
@@ -259,6 +260,21 @@ public class GameBoardManager : MonoBehaviour
         curTileQZ.PhaseAll(math.PI * percentShift);
         currentlySelectedTile = null;
         tileHighlight.SetActive(false);
+    }
+
+    public void PhaseRotateTile() {
+        Tile currentTile = currentlySelectedTile.GetComponent<Tile>();
+        QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
+        if (currentTile.TileType != Tile.Type.QuantumZone) return;
+        if (curTileQZ.IsMeasured) { return; }
+
+        curTileQZ.PhaseAll(math.PI * phaseRotatePercent);
+        currentlySelectedTile = null;
+        tileHighlight.SetActive(false);
+    }
+
+    public void UpdatePhaseRotatePercent(float val) {
+        phaseRotatePercent = math.clamp(val, 0, 1f);
     }
 
     #region Auto-Generate Map
