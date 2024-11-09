@@ -2,8 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using QRG.QuantumForge.FaQtory;
 using QRG.QuantumForge.Runtime;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -174,7 +177,10 @@ public class GameBoardManager : MonoBehaviour
 
         // Update player
         tileHighlight.SetActive(false);
-        if (destPos == new Vector2Int(-1,-1)) return;
+        if (destPos == new Vector2Int(-1,-1)) {
+            currentlySelectedTile = null;
+            return;
+        }
         playerBoardPos = destPos;
         player.transform.position = GetWorldPosOnBoard(playerBoardPos);
         CurrentFuel--;
@@ -194,6 +200,26 @@ public class GameBoardManager : MonoBehaviour
             default:
             break;
         }
+
+        // Pickup Tile
+        Pickup pickup = currentTile.pickup;
+        if (pickup) {
+            switch (pickup.ItemType) {
+                case Pickup.Item.RepairKit:
+                    player.GetComponent<PlayerHealth>().HealPlayer(pickup.val);
+                    break;
+                case Pickup.Item.Fuel:
+                    CurrentFuel += pickup.val;
+                    Math.Clamp(CurrentFuel, 0 , maxFuel);
+                    break;
+                case Pickup.Item.Probe:
+                    CurrentProbesCount += pickup.val;
+                    Math.Clamp(CurrentProbesCount, 0 , maxProbes);
+                    break;
+            }
+            pickup.gameObject.SetActive(false);
+        }
+
         currentlySelectedTile = null;
     }
 
@@ -220,10 +246,19 @@ public class GameBoardManager : MonoBehaviour
         }
         CurrentProbesCount--;
         currentlySelectedTile = null;
+        tileHighlight.SetActive(false);
     }
 
-    public void PhaseRotateTile() {
+    public void PhaseRotateTile(float percentShift) {
+        Tile currentTile = currentlySelectedTile.GetComponent<Tile>();
+        QuantumZone curTileQZ = currentTile.GetComponent<QuantumZone>();
+        if (currentTile.TileType != Tile.Type.QuantumZone) return;
+        if (curTileQZ.IsMeasured) { return; }
+
+        percentShift = math.clamp(percentShift, 0, 1f);
+        curTileQZ.PhaseAll(math.PI * percentShift);
         currentlySelectedTile = null;
+        tileHighlight.SetActive(false);
     }
 
     #region Auto-Generate Map
